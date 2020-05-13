@@ -18,6 +18,7 @@ package dgo
 
 import (
 	"context"
+	"fmt"
 	"github.com/haiodo/dgo/cmd/dgo/tools"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -99,7 +100,8 @@ var listCmd = &cobra.Command{
 func buildTarget(ctx context.Context, curDir, target string, env []string) (containerId string, err error) {
 	logrus.Infof("Build target %v with docker...", target)
 
-	output, err := tools.ExecRead(ctx, curDir, []string{"docker", "build", "--build-arg", "BUILD=false", ".", "--target", target}, env, true)
+	var output []string
+	output, err = tools.ExecRead(ctx, curDir, []string{"docker", "build", "-e", fmt.Sprintf("%s=true", SkipBuildEnv), ".", "--target", target}, env, true)
 
 	if err != nil {
 		return "", err

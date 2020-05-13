@@ -34,6 +34,7 @@ const (
 	SpireInitDone  = "DGO:Spire Initialization Done"
 	DebugEnv       = "DGO_TEST_DEBUG"
 	TestPackageEnv = "DGO_TEST_PACKAGE"
+	SkipBuildEnv   = "DGO_SKIP_BUILD"
 )
 
 var testArguments = struct {

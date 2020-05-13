@@ -17,6 +17,7 @@
 package dgo
 
 import (
+	"fmt"
 	"github.com/haiodo/dgo/cmd/dgo/tools"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -74,6 +75,11 @@ var buildCmd = &cobra.Command{
 }
 
 func PerformBuild(cmd *cobra.Command, args []string, cmdArguments *BuildCmdArguments) error {
+	if os.Getenv(SkipBuildEnv) == "true" {
+		logrus.Infof("Build is complete on host. Success.")
+		return nil
+	}
+
 	env, cgoEnv := tools.RetrieveGoEnv(cmdArguments.cgoEnabled, cmdArguments.goos, cmdArguments.goarch)
 
 	curDir, err := os.Getwd()
@@ -140,7 +146,7 @@ func PerformBuild(cmd *cobra.Command, args []string, cmdArguments *BuildCmdArgum
 
 	if cmdArguments.docker && !tools.IsDocker() {
 		logrus.Infof("Building docker container")
-		err := tools.Exec(cmd.Context(), curDir, []string{"docker", "build" ,".", "--build-arg", "BUILD=false"}, env)
+		err := tools.Exec(cmd.Context(), curDir, []string{"docker", "build", "-e", fmt.Sprintf("%s=true", SkipBuildEnv), "."}, env)
 		if err != nil {
 			logrus.Errorf("Failed to build docker container %v", err)
 			return err
