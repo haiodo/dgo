@@ -96,7 +96,7 @@ func PerformBuild(cmd *cobra.Command, args []string, cmdArguments *BuildCmdArgum
 		go func() {
 			defer wg.Done()
 			logrus.Infof("Building: %v at %v", cmdName, rootDir)
-			buildCmd := []string{"go", "build", "-o", path.Join(cmdArguments.outputFolder, cmdName), "./" + rootDir}
+			buildCmd := []string{"go", "build", "-o", path.Join(cmdArguments.outputFolder, cmdName), rootDir}
 			if err := tools.Exec(cmd.Context(), curDir, buildCmd, env); err != nil {
 				logrus.Errorf("Error build: %v %v", buildCmd, err)
 				pkgError = err
@@ -118,7 +118,7 @@ func PerformBuild(cmd *cobra.Command, args []string, cmdArguments *BuildCmdArgum
 						wg.Add(1)
 						go func() {
 							defer wg.Done()
-							testPath := "./" + path.Join(rootDir, pp.RelPath)
+							testPath := path.Join(rootDir, pp.RelPath)
 							buildCmd := []string{"go", "test", "-c", "-o", path.Join(cmdArguments.outputFolder, pp.OutName), testPath}
 							if err := tools.Exec(cmd.Context(), curDir, buildCmd, env); err != nil {
 								logrus.Errorf("Error build: %v %v", buildCmd, err)

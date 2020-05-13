@@ -36,7 +36,7 @@ type wrapper struct {
 }
 
 // ExecRead - execute command and return output as result, stderr is ignored.
-func ExecRead(ctx context.Context, dir string, args, env []string) ([]string, error) {
+func ExecRead(ctx context.Context, dir string, args, env []string, showOut bool) ([]string, error) {
 	var err error
 	if dir == "" {
 		dir, err = os.Getwd()
@@ -47,21 +47,40 @@ func ExecRead(ctx context.Context, dir string, args, env []string) ([]string, er
 	}
 	var proc *wrapper
 	proc, err = execProc(ctx, dir, args, env)
-	if err != nil {
+	if err != nil && proc == nil {
 		return nil, err
 	}
 	output := []string{}
+	errOutput := []string{}
 	reader := bufio.NewReader(proc.Stdout)
+	errReader := bufio.NewReader(proc.Stderr)
+
+	go func() {
+		for {
+			s, err := errReader.ReadString('\n')
+			if err != nil {
+				break
+			}
+			if showOut {
+				logrus.Infof("%v stderr ==> %v", args[0], strings.TrimSpace(s))
+			}
+			errOutput = append(errOutput, strings.TrimSpace(s))
+		}
+	}()
+
 	for {
 		s, err := reader.ReadString('\n')
 		if err != nil {
 			break
 		}
+		if showOut {
+			logrus.Infof("%v ==> %v", args[0], strings.TrimSpace(s))
+		}
 		output = append(output, strings.TrimSpace(s))
 	}
 	err = proc.Cmd.Wait()
 	if err != nil {
-		return output, err
+		return append(output, errOutput...), err
 	}
 	return output, nil
 }
@@ -72,8 +91,34 @@ func Exec(ctx context.Context, dir string, args, env []string) error {
 	if err != nil {
 		return err
 	}
+	printCmdOutput(p, args)
 	err = p.Cmd.Wait()
 	return err
+}
+
+func printCmdOutput(p *wrapper, args []string) {
+	reader := bufio.NewReader(p.Stdout)
+	errReader := bufio.NewReader(p.Stderr)
+
+	go func() {
+		for {
+			s, err := errReader.ReadString('\n')
+			if err != nil {
+				break
+			}
+			logrus.Infof("%v stderr ==> %v", args[0], strings.TrimSpace(s))
+		}
+	}()
+
+	go func() {
+		for {
+			s, err := reader.ReadString('\n')
+			if err != nil {
+				break
+			}
+			logrus.Infof("%v ==> %v", args[0], strings.TrimSpace(s))
+		}
+	}()
 }
 
 // Exec - execute shell command
@@ -82,6 +127,7 @@ func Start(ctx context.Context, dir string, args, env []string) (context.Context
 	if err != nil {
 		return nil, err
 	}
+	printCmdOutput(p, args)
 	return p.ctx, err
 }
 

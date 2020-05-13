@@ -128,7 +128,7 @@ func (sc *spireContext) Start(ctx context.Context) error {
 	// Get the SpireServers Token
 	cmdStr := []string{"spire-server", "token", "generate", "-spiffeID", sc.agentID, "-registrationUDSPath", regSocket}
 	var lines []string
-	lines, err = tools.ExecRead(sc.ctx, sc.spireRoot, cmdStr, nil)
+	lines, err = tools.ExecRead(sc.ctx, sc.spireRoot, cmdStr, nil, true)
 	if err != nil {
 		err = errors.Wrap(err, "Error acquiring spire-server token")
 		sc.Stop()

@@ -32,7 +32,7 @@ func FindMainPackages(ctx context.Context, root string, env []string) []string {
 	// Find a list of package roots using
 	//List commands do not need to pass environment
 	listCmd := []string{"go", "list", "-f", "{{.Name}}:{{.Dir}}", "./..."}
-	lines, err := ExecRead(ctx, root, listCmd, env)
+	lines, err := ExecRead(ctx, root, listCmd, env, false)
 	if err != nil {
 		logrus.Fatalf("failed to find a list of go package roots: %v", err)
 	}
@@ -43,22 +43,32 @@ func FindMainPackages(ctx context.Context, root string, env []string) []string {
 		}
 		if strings.HasPrefix(trimLine, "main:") {
 			// we found main package, let's add it as root
-			roots = append(roots, trimLine[len(root)+6:len(trimLine)])
+			pkgRoot := trimLine[5:len(trimLine)]
+			roots = append(roots, pkgRoot)
 		}
 	}
 	return roots
 }
 
 func relativePath(rootDir, pkgName string) string {
-	ind := strings.Index(pkgName, rootDir)
-	if ind != -1 {
-		relPath := pkgName[ind+len(rootDir) : len(pkgName)]
-		if strings.HasPrefix(relPath, "/") {
-			relPath = relPath[1:len(relPath)]
+	names := []string{}
+	pkg := pkgName
+	for {
+		if strings.HasSuffix(rootDir, pkg) {
+			return ""
 		}
-		return relPath
+		var part string
+		pkg, part = path.Split(pkg)
+		pkg = path.Clean(pkg)
+		names = append([]string{part}, names...)
+		if strings.HasSuffix(rootDir, pkg) {
+			break
+		}
+		if pkg == "" {
+			break
+		}
 	}
-	return pkgName
+	return strings.Join(names, "/")
 }
 
 type PackageInfo struct {
@@ -83,8 +93,8 @@ func FindTests(ctx context.Context, rootDir string, env []string) (map[string]*P
 	testPackages := map[string]*PackageInfo{}
 	// Find all Tests
 	// List commands do not need to pass environment
-	listCmd := []string{"go", "test", "--list", ".*", "-json", "./" + rootDir}
-	lines, err := ExecRead(ctx, rootDir, listCmd, env)
+	listCmd := []string{"go", "test", "./...", "--list", ".*", "-json"}
+	lines, err := ExecRead(ctx, rootDir, listCmd, env, false)
 	if err != nil {
 		logrus.Errorf("Failed to list Tests %v %v", listCmd, err)
 		return nil, err

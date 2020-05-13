@@ -116,7 +116,7 @@ func testOnHost(cmd *cobra.Command, args []string) error {
 
 	// Remove running containers
 	var containers []string
-	containers, err = tools.ExecRead(cmd.Context(), curDir, []string{"docker", "ps", "--filter", "label=dgo.test"}, nil)
+	containers, err = tools.ExecRead(cmd.Context(), curDir, []string{"docker", "ps", "--filter", "label=dgo.test"}, nil, false)
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func testOnDocker(cmd *cobra.Command, args []string) error {
 				continue
 			}
 
-			lines, err := tools.ExecRead(cmd.Context(), curDir, []string{"/bin/" + pkgInfo.OutName, "-test.list", ".*"}, nil)
+			lines, err := tools.ExecRead(cmd.Context(), curDir, []string{"/bin/" + pkgInfo.OutName, "-test.list", ".*"}, nil, false)
 			if err != nil {
 				logrus.Errorf("Failed to list test for %v cause: %v", pkgInfo.OutName, err)
 			}

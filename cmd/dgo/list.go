@@ -17,7 +17,6 @@
 package dgo
 
 import (
-	"bufio"
 	"context"
 	"github.com/haiodo/dgo/cmd/dgo/tools"
 	"github.com/pkg/errors"
@@ -25,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -68,8 +68,14 @@ var listCmd = &cobra.Command{
 		// Final All test packages
 		packages := map[string]map[string]*tools.PackageInfo{}
 		for _, rootDir := range args {
+			sourceRoot := rootDir
+			rootDir, err = filepath.Abs(rootDir)
+			if err != nil {
+				logrus.Errorf("Failed to make absolute path for %v", sourceRoot)
+			}
 			// We in state to run tests,
-			pkgs, err := tools.FindTests(cmd.Context(), rootDir, cgoEnv)
+			var pkgs map[string]*tools.PackageInfo
+			pkgs, err = tools.FindTests(cmd.Context(), rootDir, cgoEnv)
 			if err != nil {
 				logrus.Errorf("failed to find tests %v", err)
 			}
@@ -93,32 +99,12 @@ var listCmd = &cobra.Command{
 func buildTarget(ctx context.Context, curDir, target string, env []string) (containerId string, err error) {
 	logrus.Infof("Build target %v with docker...", target)
 
-	reader, writer, err := os.Pipe()
+	output, err := tools.ExecRead(ctx, curDir, []string{"docker", "build", "--build-arg", "BUILD=false", ".", "--target", target}, env, true)
+
 	if err != nil {
-		logrus.Errorf("failed to create pipe: %v", err)
 		return "", err
 	}
-	go func() {
-		err := tools.Exec(ctx, curDir, []string{"docker", "build", "--build-arg", "BUILD=false", ".", "--target", target}, env)
-		if err != nil {
-			logrus.Errorf("Failed to run docker build %v", err)
-		}
-		_ = reader.Close()
-		_ = writer.Close()
-	}()
-
-	sr := bufio.NewReader(reader)
-	lastLine := ""
-	for {
-		str, err := sr.ReadString('\n')
-		if err != nil {
-			break
-		}
-		if len(str) > 0 {
-			lastLine = str
-		}
-		logrus.Infof("Docker build: %v", str)
-	}
+	lastLine := output[len(output)-1]
 	prefix := "Successfully built "
 	if strings.HasPrefix(lastLine, prefix) {
 		containerId = strings.TrimSpace(lastLine[len(prefix):len(lastLine)])

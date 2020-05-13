@@ -52,7 +52,7 @@ var spireCmd = &cobra.Command{
 		}
 
 		var curUserId []string
-		curUserId, err = tools.ExecRead(cmd.Context(), "", []string{"id", "-u"}, nil)
+		curUserId, err = tools.ExecRead(cmd.Context(), "", []string{"id", "-u"}, nil, false)
 
 		if err = spireContext.AddEntry(agentID, fmt.Sprintf("spiffe://example.org/test"), fmt.Sprintf("unix:uid:%s", curUserId[0])); err != nil {
 			logrus.Fatalf("failed to add entry to spire: %+v", err)
