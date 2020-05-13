@@ -101,7 +101,7 @@ func buildTarget(ctx context.Context, curDir, target string, env []string) (cont
 	logrus.Infof("Build target %v with docker...", target)
 
 	var output []string
-	output, err = tools.ExecRead(ctx, curDir, []string{"docker", "build", "-e", fmt.Sprintf("%s=true", SkipBuildEnv), ".", "--target", target}, env, true)
+	output, err = tools.ExecRead(ctx, curDir, []string{"docker", "build", "--build-arg", fmt.Sprintf("%s=true", SkipBuildEnv), ".", "--target", target}, env, true)
 
 	if err != nil {
 		return "", err

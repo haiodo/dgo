@@ -48,7 +48,7 @@ func init() {
 		"tests", "t", true, "Compile individual test packages")
 
 	buildCmd.Flags().BoolVarP(&cmdArguments.docker,
-		"docker", "", true, "If enabled, will do docker build . --build-arg BUILD=false after local build will be done")
+		"docker", "", true, "If enabled, will do docker build . --build-arg DGO_SKIP_BUILD=true after local build will be done")
 
 	buildCmd.Flags().BoolVarP(&cmdArguments.cgoEnabled,
 		"cgo", "", false, "If disabled will pass CGO_ENABLED=0 env variable to go compiler (default disabled)")
@@ -146,7 +146,7 @@ func PerformBuild(cmd *cobra.Command, args []string, cmdArguments *BuildCmdArgum
 
 	if cmdArguments.docker && !tools.IsDocker() {
 		logrus.Infof("Building docker container")
-		err := tools.Exec(cmd.Context(), curDir, []string{"docker", "build", "-e", fmt.Sprintf("%s=true", SkipBuildEnv), "."}, env)
+		err := tools.Exec(cmd.Context(), curDir, []string{"docker", "build", "--build-arg", fmt.Sprintf("%s=true", SkipBuildEnv), "."}, env)
 		if err != nil {
 			logrus.Errorf("Failed to build docker container %v", err)
 			return err

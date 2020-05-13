@@ -14,25 +14,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmd - cobra commands for forwarder
 package dgo
 
 import (
+	"github.com/haiodo/dgo/cmd/dgo/tools"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"os"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "dgo tooling for docker",
-	Short: "This tool `D-go` (aka docker go) is intended to help with this approach and provide smooth and fast experience.",
-	Long: `
-		Docker go tooling.
-	`,
-	Run: func(cmd *cobra.Command, args []string) {
-		_ = cmd.Usage()
-	},
+func init() {
+	cmd := doCmd
+	rootCmd.AddCommand(cmd)
 }
 
-// Execute - execute the command
-func Execute() error {
-	return rootCmd.Execute()
+var doCmd = &cobra.Command{
+	Use:   "do",
+	Short: "Perform a do with something if build is allowed",
+	Long:  `Perform a do with something if build is allowed`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logrus.Infof("dgo.do target...")
+		if os.Getenv(SkipBuildEnv) == "true" {
+			logrus.Infof("Do %v is complete on host. Success.", args)
+			return nil
+		}
+		return tools.Exec(cmd.Context(), "", args, nil)
+	},
 }
