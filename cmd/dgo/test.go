@@ -265,7 +265,7 @@ func testOnDocker(cmd *cobra.Command, args []string) error {
 		}
 
 		// Marshal the new args
-		debugCmd = []string{dlv, "--listen=" + listenArg, "--headless=true", "--api-version=2", "exec"}
+		debugCmd = []string{dlv, "--listen=" + listenArg, "--headless=true", "--accept-multiclient", "--api-version=2", "exec"}
 	}
 
 	testPkg := os.Getenv(TestPackageEnv)

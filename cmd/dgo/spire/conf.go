@@ -25,18 +25,32 @@ import (
 const SocketEnv = "SPIFFE_ENDPOINT_SOCKET"
 
 func conf(name string, options ...string) string {
-	result := name + " {\n"
+	result := name + " {"
+	nl := false
 	for _, opt := range options {
-		result += fmt.Sprintf("\t%s\n", opt)
+		if !nl {
+			result += "\n"
+			nl = true
+		}
+		for _, o := range strings.Split(opt, "\n") {
+			result += fmt.Sprintf("\t%s\n", o)
+		}
 	}
 	result += "}\n"
 	return result
 }
 
 func confN(name, param string, options ...string) string {
-	result := name + " \"" + param + "\"" + " {\n"
+	result := name + " \"" + param + "\"" + " {"
+	nl := false
 	for _, opt := range options {
-		result += fmt.Sprintf("\t%s\n", opt)
+		if !nl {
+			result += "\n"
+			nl = true
+		}
+		for _, o := range strings.Split(opt, "\n") {
+			result += fmt.Sprintf("\t%s\n", o)
+		}
 	}
 	result += "}\n"
 	return result
@@ -97,9 +111,9 @@ func genServerConf(basePath, socketName string) string {
 	return conf("server",
 		optS("bind_address", "127.0.0.1"),
 		optS("bind_port", "8081"),
-		optS("registration_uds_path", "/tmp/spire-registration.sock"),
+		optS("registration_uds_path", socketName),
 		optS("trust_domain", "example.org"),
-		optS("data_dir", "./.data"),
+		optS("data_dir", path.Join(basePath,".data")),
 		optS("log_level", "WARN"),
 		opt("upstream_bundle", "true"),
 		optS("default_svid_ttl", "1h"),

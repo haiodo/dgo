@@ -45,6 +45,7 @@ type spireContext struct {
 	needClean       bool
 	spireServerCtx  context.Context
 	agentID         string
+	regSocket       string
 }
 
 // New - contruct a new spire context
@@ -74,7 +75,7 @@ func (sc *spireContext) AddEntry(parentID, spiffeID, selector string) error {
 		"-parentID", parentID,
 		"-spiffeID", spiffeID,
 		"-selector", selector,
-		"-registrationUDSPath", sc.spireSocketPath}
+		"-registrationUDSPath", sc.regSocket}
 	return tools.Exec(sc.ctx, sc.spireRoot, cmdStr, nil)
 }
 
@@ -85,9 +86,7 @@ func (sc *spireContext) Start(ctx context.Context) error {
 
 	// Write the config files (if not present)
 	var err error
-	sc.spireSocketPath, err = writeDefaultConfigFiles(ctx, sc.spireRoot)
-
-	regSocket := path.Join(sc.spireRoot, spireServerRegSock)
+	sc.spireSocketPath, sc.regSocket, err = writeDefaultConfigFiles(ctx, sc.spireRoot)
 
 	if err != nil {
 		sc.Stop()
@@ -111,12 +110,12 @@ func (sc *spireContext) Start(ctx context.Context) error {
 	healthOk := false
 	err = nil
 	for i := 0; i < 10; i++ {
-		if err = tools.Exec(sc.ctx, sc.spireRoot, []string{"spire-server", "healthcheck", "-registrationUDSPath", regSocket}, nil); err == nil {
+		if err = tools.Exec(sc.ctx, sc.spireRoot, []string{"spire-server", "healthcheck", "-registrationUDSPath", sc.regSocket}, nil); err == nil {
 			// All is good, break
 			healthOk = true
-			time.Sleep(50 * time.Millisecond)
 			break
 		}
+		time.Sleep(50 * time.Millisecond)
 	}
 	if !healthOk {
 		err = errors.Wrap(err, "Error starting spire-server")
@@ -125,7 +124,7 @@ func (sc *spireContext) Start(ctx context.Context) error {
 	}
 
 	// Get the SpireServers Token
-	cmdStr := []string{"spire-server", "token", "generate", "-spiffeID", sc.agentID, "-registrationUDSPath", regSocket}
+	cmdStr := []string{"spire-server", "token", "generate", "-spiffeID", sc.agentID, "-registrationUDSPath", sc.regSocket}
 	var lines []string
 	lines, err = tools.ExecRead(sc.ctx, sc.spireRoot, cmdStr, nil, true)
 	if err != nil {
@@ -152,9 +151,9 @@ func (sc *spireContext) Start(ctx context.Context) error {
 		if err = tools.Exec(sc.ctx, sc.spireRoot, []string{"spire-agent", "healthcheck", "-socketPath", sc.spireSocketPath}, nil); err == nil {
 			// All is good, break
 			healthOk = true
-			time.Sleep(50 * time.Millisecond)
 			break
 		}
+		time.Sleep(50 * time.Millisecond)
 	}
 	if !healthOk {
 		err = errors.Wrap(err, "Error starting spire-server")
@@ -186,23 +185,24 @@ func (sc *spireContext) Stop() {
 }
 
 // writeDefaultConfigFiles - write config files into configRoot and return a spire socket file to use
-func writeDefaultConfigFiles(ctx context.Context, spireRoot string) (string, error) {
-	spireSocketName := path.Join(spireRoot, spireEndpointSocket)
+func writeDefaultConfigFiles(ctx context.Context, spireRoot string) (spireSocketName string, regSocket string, err error) {
+	spireSocketName = path.Join(spireRoot, spireEndpointSocket)
+	regSocket = path.Join(spireRoot, spireServerRegSock)
 	configFiles := map[string]string{
 		spireServerConfFileName: genServerConf(spireRoot, spireServerRegSock),
 		spireAgentConfFilename:  genSpireConfig(spireRoot, spireEndpointSocket),
 	}
 	for configName, contents := range configFiles {
 		filename := path.Join(spireRoot, configName)
-		if _, err := os.Stat(filename); os.IsNotExist(err) {
+		if _, err = os.Stat(filename); os.IsNotExist(err) {
 			logrus.Infof("Configuration file: %q not found, using defaults", filename)
-			if err := os.MkdirAll(path.Dir(filename), 0700); err != nil {
-				return "", err
+			if err = os.MkdirAll(path.Dir(filename), 0700); err != nil {
+				return
 			}
-			if err := ioutil.WriteFile(filename, []byte(contents), 0700); err != nil {
-				return "", err
+			if err = ioutil.WriteFile(filename, []byte(contents), 0700); err != nil {
+				return
 			}
 		}
 	}
-	return spireSocketName, nil
+	return
 }
