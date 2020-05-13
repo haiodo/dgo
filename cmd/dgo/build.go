@@ -42,7 +42,7 @@ func init() {
 	rootCmd.AddCommand(buildCmd)
 
 	buildCmd.Flags().StringVarP(&cmdArguments.outputFolder,
-		"output", "o", "./dist", "Output folder (default ./dist)")
+		"output", "o", "./dist", "Output folder")
 
 	buildCmd.Flags().BoolVarP(&cmdArguments.compileTests,
 		"tests", "t", true, "Compile individual test packages")
@@ -51,13 +51,13 @@ func init() {
 		"docker", "", true, "If enabled, will do docker build . --build-arg DGO_SKIP_BUILD=true after local build will be done")
 
 	buildCmd.Flags().BoolVarP(&cmdArguments.cgoEnabled,
-		"cgo", "", false, "If disabled will pass CGO_ENABLED=0 env variable to go compiler (default disabled)")
+		"cgo", "", false, "If disabled will pass CGO_ENABLED=0 env variable to go compiler")
 
 	buildCmd.Flags().StringVarP(&cmdArguments.goos,
-		"goos", "", "linux", "If passed will pass GOOS=${value} env variable (default linux)")
+		"goos", "", "linux", "If passed will pass GOOS=${value} env variable")
 
 	buildCmd.Flags().StringVarP(&cmdArguments.goarch,
-		"goarch", "", "amd64", "If passed will pass GOARCH=${value} env variable (default amd64)")
+		"goarch", "", "amd64", "If passed will pass GOARCH=${value} env variable")
 }
 
 var buildCmd = &cobra.Command{

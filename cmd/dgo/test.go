@@ -52,13 +52,13 @@ func init() {
 	rootCmd.AddCommand(cmd)
 
 	testCmd.Flags().StringVarP(&testArguments.outputFolder,
-		"output", "o", "./dist", "Output folder (default ./dist)")
+		"output", "o", "./dist", "Output folder")
 
 	testCmd.Flags().BoolVarP(&testArguments.cgoEnabled,
-		"cgo", "", false, "If disabled will pass CGO_ENABLED=0 env variable to go compiler (default disabled)")
+		"cgo", "", false, "If disabled will pass CGO_ENABLED=0 env variable to go compiler")
 
 	testCmd.Flags().BoolVarP(&testArguments.spire,
-		"spire", "s", true, "If enabled will run spire (default enabled)")
+		"spire", "s", true, "If enabled will run spire")
 
 	testCmd.Flags().BoolVarP(&testArguments.debugTests,
 		"debug", "d", false, "If enabled will start debug for every test we run with dlv")

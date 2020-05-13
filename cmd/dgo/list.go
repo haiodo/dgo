@@ -39,10 +39,10 @@ func init() {
 	rootCmd.AddCommand(cmd)
 
 	listCmd.Flags().BoolVarP(&testArguments.cgoEnabled,
-		"cgo", "", false, "If disabled will pass CGO_ENABLED=0 env variable to go compiler (default disabled)")
+		"cgo", "", false, "If disabled will pass CGO_ENABLED=0 env variable to go compiler")
 
 	listCmd.Flags().BoolVarP(&testArguments.spire,
-		"spire", "s", true, "If enabled will run spire (default enabled)")
+		"spire", "s", true, "If enabled will run spire")
 }
 
 var listCmd = &cobra.Command{

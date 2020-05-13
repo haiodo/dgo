@@ -33,7 +33,7 @@ var doCmd = &cobra.Command{
 	Short: "Perform a do with something if build is allowed",
 	Long:  `Perform a do with something if build is allowed`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logrus.Infof("dgo.do target...")
+		logrus.Infof("dgo.do target... %v", os.Getenv(SkipBuildEnv))
 		if os.Getenv(SkipBuildEnv) == "true" {
 			logrus.Infof("Do %v is complete on host. Success.", args)
 			return nil
