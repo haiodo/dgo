@@ -22,6 +22,8 @@ import (
 	"strings"
 )
 
+const SocketEnv = "SPIFFE_ENDPOINT_SOCKET"
+
 func conf(name string, options ...string) string {
 	result := name + " {\n"
 	for _, opt := range options {

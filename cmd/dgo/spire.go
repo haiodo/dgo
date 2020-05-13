@@ -22,7 +22,6 @@ import (
 	"github.com/haiodo/dgo/cmd/dgo/tools"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spiffe/go-spiffe/workload"
 	"os"
 )
 
@@ -58,7 +57,7 @@ var spireCmd = &cobra.Command{
 			logrus.Fatalf("failed to add entry to spire: %+v", err)
 		}
 
-		_, _ = os.Stdout.WriteString(fmt.Sprintf("\n\n************\n\nSpire is up and running, please set ENV variable:\n%s=%s\n\n\n*********\n", workload.SocketEnv, os.Getenv(workload.SocketEnv)))
+		_, _ = os.Stdout.WriteString(fmt.Sprintf("\n\n************\n\nSpire is up and running, please set ENV variable:\n%s=%s\n\n\n*********\n", spire.SocketEnv, os.Getenv(spire.SocketEnv)))
 		<-cmd.Context().Done()
 
 		return nil

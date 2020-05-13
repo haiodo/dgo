@@ -23,7 +23,6 @@ import (
 )
 
 func main() {
-	logrus.Infof("dgo version %v", 1)
 	err := dgo.Execute()
 	if err != nil {
 		logrus.Fatalf("error executing root command: %v", err)

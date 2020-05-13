@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/spiffe/go-spiffe/workload"
 
 	"github.com/pkg/errors"
 )
@@ -94,8 +93,8 @@ func (sc *spireContext) Start(ctx context.Context) error {
 		sc.Stop()
 		return err
 	}
-	logrus.Infof("Env variable %s=%s are set", workload.SocketEnv, "unix:"+sc.spireSocketPath)
-	if err = os.Setenv(workload.SocketEnv, "unix:"+sc.spireSocketPath); err != nil {
+	logrus.Infof("Env variable %s=%s are set", SocketEnv, "unix:"+sc.spireSocketPath)
+	if err = os.Setenv(SocketEnv, "unix:"+sc.spireSocketPath); err != nil {
 		sc.Stop()
 		return err
 	}

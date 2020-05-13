@@ -137,6 +137,7 @@ func execProc(ctx context.Context, dir string, args, env []string) (*wrapper, er
 		return nil, errors.New("missing command to run")
 	}
 
+	logrus.Infof("Running %v", args)
 	p := &wrapper{
 
 	}
