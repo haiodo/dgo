@@ -274,6 +274,7 @@ func testOnDocker(cmd *cobra.Command, args []string) error {
 	}
 
 	// Ok we are ready to run tests
+	var lastError error
 	for cmdName, testApp := range packages {
 		logrus.Infof("Running tests for %v", cmdName)
 		for _, testPkg := range testApp {
@@ -288,11 +289,11 @@ func testOnDocker(cmd *cobra.Command, args []string) error {
 				execName := append(debugCmd, testExecName)
 				// Run the test
 				if err := tools.Exec(cmd.Context(), curDir, execName, nil); err != nil {
-					logrus.Fatalf("Error running test Executable: %q err: %q", testExecName, err)
-					return err
+					logrus.Errorf("Error running test Executable: %q err: %q", testExecName, err)
+					lastError = err
 				}
 			}
 		}
 	}
-	return nil
+	return lastError
 }
