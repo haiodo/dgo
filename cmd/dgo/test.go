@@ -178,8 +178,8 @@ func testOnDocker(cmd *cobra.Command, args []string) error {
 			// This is probable go test, let's find out a tests inside and extract cmdName.
 			cmdName := fName[0 : len(fName)-len(testSuffix)]
 			relPath := ""
-			// Remove package name
-			sepPos := strings.Index(cmdName, "-")
+			// Remove .test and put into
+			sepPos := strings.Index(cmdName, testSuffix)
 			if sepPos != -1 {
 				relPath = fName[sepPos+1 : len(fName)]
 				cmdName = fName[0:sepPos]
@@ -192,12 +192,6 @@ func testOnDocker(cmd *cobra.Command, args []string) error {
 			pkgInfo := &tools.PackageInfo{
 				OutName: f.Name(),
 				RelPath: strings.ReplaceAll(relPath, "-", "/"),
-			}
-
-			// Check if main application are present, since we need it as SUT
-			if _, err := os.Stat(path.Join("/bin", cmdName)); os.IsNotExist(err) {
-				logrus.Infof("Test file %v ignored, since no main application found %v: cause: %v", f.Name(), path.Join("/bin", cmdName), err)
-				continue
 			}
 
 			lines, err := tools.ExecRead(cmd.Context(), curDir, []string{"/bin/" + pkgInfo.OutName, "-test.list", ".*"}, nil, false)
