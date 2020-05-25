@@ -25,10 +25,14 @@ import (
 	"os"
 )
 
+var spireRoot string
+
 func init() {
 	cmd := spireCmd
 	rootCmd.AddCommand(cmd)
 
+	spireCmd.Flags().StringVarP(&spireRoot,
+		"root", "r", "", "Spire root folder(if not defined temporary folder will be used)")
 }
 
 var spireCmd = &cobra.Command{
@@ -39,7 +43,15 @@ var spireCmd = &cobra.Command{
 		logrus.Infof("NSM.Spire target...")
 
 		agentID := "spiffe://example.org/myagent"
-		spireContext, err := spire.New("", agentID)
+
+		if spireRoot != "" {
+			if err := os.MkdirAll(spireRoot, os.ModePerm); err != nil {
+				logrus.Errorf("Failed to create root folder: %v %v", spireRoot, err)
+				return err
+			}
+		}
+
+		spireContext, err := spire.New(spireRoot, agentID)
 		if err != nil {
 			logrus.Errorf("Error: %v", err)
 			return err

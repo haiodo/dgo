@@ -59,6 +59,9 @@ func New(spireRoot string, agentID string) (SpireContext, error) {
 		}
 		needClean = true
 	}
+	_ = os.RemoveAll(spireRoot)
+	_ = os.MkdirAll(spireRoot, os.ModePerm)
+
 	return &spireContext{
 		spireRoot: spireRoot,
 		needClean: needClean,
