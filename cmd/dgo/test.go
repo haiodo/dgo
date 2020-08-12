@@ -222,12 +222,7 @@ func testOnDocker(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			logrus.Fatalf("failed to run spire: %+v", err)
 		}
-		for cmdName, pkgs := range packages {
-			// Add spire entries for every appliction and test application we found.
-			if err = spireCtx.AddEntry(agentID, fmt.Sprintf("spiffe://example.org/%s", cmdName), fmt.Sprintf("unix:path:/bin/%s", cmdName)); err != nil {
-				logrus.Fatalf("failed to add entry to spire: %+v", err)
-			}
-
+		for _, pkgs := range packages {
 			if err = spireCtx.AddEntry(agentID, fmt.Sprintf("spiffe://example.org/dlv"), fmt.Sprintf("unix:path:/bin/dlv")); err != nil {
 				logrus.Fatalf("failed to add entry to spire: %+v", err)
 			}

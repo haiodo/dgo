@@ -64,4 +64,14 @@ It will output all binaries into local ./dist folder. So they could be easy comp
             nsm test (will check if inside docker will just run all tests found in /bin/*.test)
                 will start spire server and run all tests
 2.5 Debug container inside docker
-       
+
+# Spire setup.
+
+1.1 Install spire/spiffie locally 
+
+1.2   start dgo with spire
+    `dgo spire --root={path}/spire_root`
+
+1.3 add environment variable: SPIFFE_ENDPOINT_SOCKET to IDE.
+
+    `SPIFFE_ENDPOINT_SOCKET=unix:/{path}/spire_root/agent.sock`
