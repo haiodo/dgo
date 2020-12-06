@@ -20,12 +20,23 @@ package tools
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 )
 
 // IsDocker - tells we are running from inside docker or other container.
 func IsDocker() bool {
 	return isDockerFileExists() || isDockerHasCGroup()
+}
+
+func InitDockerfile(root, cmd string) error {
+	p := path.Join(root, "Dockerfile."+cmd)
+	const template = `FROM golang:1.13
+COPY dist/APP go/bin/APP
+CMD APP`
+
+	source := strings.ReplaceAll(template, "APP", cmd)
+	return ioutil.WriteFile(p, []byte(source), os.ModePerm)
 }
 
 func isDockerFileExists() bool {

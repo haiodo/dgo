@@ -96,7 +96,7 @@ func PerformBuild(cmd *cobra.Command, args []string, cmdArguments *BuildCmdArgum
 	var pkgError error
 	for _, root := range args {
 		rootDir := path.Clean(root)
-		_, cmdName := path.Split(path.Clean(rootDir))
+		_, cmdName := path.Split(rootDir)
 
 		wg.Add(1)
 		go func() {
@@ -144,12 +144,16 @@ func PerformBuild(cmd *cobra.Command, args []string, cmdArguments *BuildCmdArgum
 		return pkgError
 	}
 
-	if cmdArguments.docker && !tools.IsDocker() {
-		logrus.Infof("Building docker container")
-		err := tools.Exec(cmd.Context(), curDir, []string{"docker", "build", "--build-arg", fmt.Sprintf("%s=true", SkipBuildEnv), "."}, env)
-		if err != nil {
-			logrus.Errorf("Failed to build docker container %v", err)
-			return err
+	for _, root := range args {
+		rootDir := path.Clean(root)
+		_, cmdName := path.Split(rootDir)
+		if cmdArguments.docker && !tools.IsDocker() {
+			logrus.Infof("Building docker container")
+			err := tools.Exec(cmd.Context(), curDir, []string{"docker", "build", "--build-arg", fmt.Sprintf("%s=true", SkipBuildEnv), ".", "-f", fmt.Sprintf("Dockerfile.%v", cmdName), "-t", fmt.Sprintf("%v:master", cmdName)}, env)
+			if err != nil {
+				logrus.Errorf("Failed to build docker container %v", err)
+				return err
+			}
 		}
 	}
 	return nil
